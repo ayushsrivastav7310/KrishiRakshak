@@ -1,0 +1,1 @@
+"""KrishiRakshak API services."""
