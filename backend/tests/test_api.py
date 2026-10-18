@@ -146,7 +146,7 @@ def test_csrf_rate_limits_forged_cookie_and_body_limits(api):
     assert client.get('/api/config').headers['cache-control'] == 'no-store'
     assert client.get('/api/nonexistent').status_code == 404
 
-def test_production_demo_guard_missing_provider_and_secure_cookie(tmp_path):
+def test_production_demo_guard_missing_provider_and_secure_cookie(tmp_path, monkeypatch):
     with pytest.raises(ValueError, match='forbidden'):
         Settings.load({**CONFIG, 'APP_ENV': 'production'})
     with pytest.raises(ValueError, match='forbidden'):
@@ -160,6 +160,12 @@ def test_production_demo_guard_missing_provider_and_secure_cookie(tmp_path):
         digest = hmac.new(CONFIG['JWT_SECRET'].encode(), b'+919876543210:123456', hashlib.sha256).hexdigest()
         with app.state.database.connection:
             app.state.database.connection.execute('INSERT INTO otp_challenges VALUES(?,?,?,?,?)', ('+919876543210', digest, now + 300000, now, 0))
+        result = client.post('/api/auth/verify-otp', json={'phone': '+919876543210', 'otp': '123456'})
+        assert result.status_code == 503  # A local digest cannot bypass the real provider.
+        from app.otp import OTPService
+        async def approved(*args):
+            return True
+        monkeypatch.setattr(OTPService, 'check', approved)
         result = client.post('/api/auth/verify-otp', json={'phone': '+919876543210', 'otp': '123456'})
         assert 'Secure' in result.headers['set-cookie']
 

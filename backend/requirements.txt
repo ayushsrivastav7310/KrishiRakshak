@@ -7,3 +7,5 @@ phonenumbers>=8.13,<10
 Pillow>=11,<13
 httpx2>=2,<3
 pytest>=8,<10
+turso_serverless==0.1.0
+vercel-blob>=0.5,<1

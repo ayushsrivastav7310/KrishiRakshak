@@ -10,3 +10,4 @@ __pycache__/
 backend/artifacts/*
 !backend/artifacts/.gitkeep
 .test-tmp*/
+.vercel/

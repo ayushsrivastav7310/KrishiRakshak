@@ -1,0 +1,16 @@
+.env
+.env.*
+**/.env
+**/.env.*
+.git/
+.test-tmp*/
+docs/
+preview.png
+**/__pycache__/
+**/.venv/
+**/data/
+**/.pytest_cache/
+backend/node_modules/
+backend/artifacts/
+backend/ml/
+backend/tests/

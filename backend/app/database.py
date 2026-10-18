@@ -5,15 +5,21 @@ from pathlib import Path
 from threading import RLock
 
 class Database:
-    def __init__(self, filename: str):
-        if filename != ':memory:':
-            Path(filename).parent.mkdir(parents=True, exist_ok=True)
-        self.connection = sqlite3.connect(filename, check_same_thread=False, timeout=10)
-        self.connection.row_factory = sqlite3.Row
+    def __init__(self, filename: str, *, remote_url: str = '', auth_token: str = ''):
+        if remote_url:
+            import turso_serverless
+            self.connection = turso_serverless.connect(remote_url, auth_token=auth_token)
+            self.connection.row_factory = turso_serverless.Row
+        else:
+            if filename != ':memory:':
+                Path(filename).parent.mkdir(parents=True, exist_ok=True)
+            self.connection = sqlite3.connect(filename, check_same_thread=False, timeout=10)
+            self.connection.row_factory = sqlite3.Row
         self.lock = RLock()
+        if not remote_url:
+            self.connection.execute('PRAGMA journal_mode=WAL')
+        self.connection.execute('PRAGMA foreign_keys=ON')
         self.connection.executescript('''
-            PRAGMA journal_mode=WAL;
-            PRAGMA foreign_keys=ON;
             CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, phone TEXT UNIQUE NOT NULL);
             CREATE TABLE IF NOT EXISTS farms (user_id INTEGER PRIMARY KEY REFERENCES users(id), data TEXT NOT NULL, photo TEXT);
             CREATE TABLE IF NOT EXISTS otp_challenges (phone TEXT PRIMARY KEY, hash TEXT NOT NULL, expires INTEGER NOT NULL, requested INTEGER NOT NULL, attempts INTEGER NOT NULL DEFAULT 0);

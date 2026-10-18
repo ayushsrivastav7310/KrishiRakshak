@@ -11,7 +11,7 @@ from typing import Annotated
 import jwt
 from fastapi import Depends, FastAPI, HTTPException, Request, Response, UploadFile, File
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from PIL import Image, UnidentifiedImageError
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -25,12 +25,13 @@ from app.intelligence import get_registry
 from app.intelligence_api import intelligence_router
 from app.phases_api import phases_router
 from app.voice import voice_router
+from app.photos import Photos
 
 
 def create_app(overrides: dict | None = None) -> FastAPI:
     settings = Settings.load(overrides)
-    database = Database(settings.database_path)
-    settings.upload_dir.mkdir(parents=True, exist_ok=True)
+    database = Database(settings.database_path, remote_url=settings.turso_url, auth_token=settings.turso_token)
+    photos = Photos(settings)
     otp_service = OTPService(settings)
 
     @asynccontextmanager
@@ -108,14 +109,20 @@ def create_app(overrides: dict | None = None) -> FastAPI:
                 raise HTTPException(400, 'Code expired. Request a new code.')
             if row['attempts'] >= 5:
                 raise HTTPException(429, 'Attempt limit reached. Request a new code after the cooldown.')
-            database.connection.execute('UPDATE otp_challenges SET attempts=attempts+1 WHERE phone=?', (phone,))
+            attempt = database.connection.execute('UPDATE otp_challenges SET attempts=attempts+1 WHERE phone=? AND hash=? AND attempts<5 AND expires>?',
+                                                 (phone, row['hash'], int(time.time() * 1000)))
             database.connection.commit()
-            if not otp_service.matches(phone, body.otp, row['hash']):
-                raise HTTPException(400, 'Incorrect code. Please try again.')
-            with database.connection:
-                database.connection.execute('DELETE FROM otp_challenges WHERE phone=?', (phone,))
-                database.connection.execute('INSERT OR IGNORE INTO users(phone) VALUES(?)', (phone,))
-                user = dict(database.connection.execute('SELECT * FROM users WHERE phone=?', (phone,)).fetchone())
+            if attempt.rowcount != 1:
+                raise HTTPException(429, 'Attempt limit reached or code replaced. Request a new code.')
+        if not await otp_service.check(phone, body.otp, row['hash']):
+            raise HTTPException(400, 'Incorrect or expired code. Please try again.')
+        with database.lock, database.connection:
+            consumed = database.connection.execute('DELETE FROM otp_challenges WHERE phone=? AND hash=? AND expires>?',
+                                                  (phone, row['hash'], int(time.time() * 1000)))
+            if consumed.rowcount != 1:
+                raise HTTPException(400, 'Code expired or already used. Request a new code.')
+            database.connection.execute('INSERT OR IGNORE INTO users(phone) VALUES(?)', (phone,))
+            user = dict(database.connection.execute('SELECT * FROM users WHERE phone=?', (phone,)).fetchone())
         now = int(time.time())
         token = jwt.encode({'sub': str(user['id']), 'iat': now, 'exp': now + 604800,
                             'iss': 'krishi-rakshak', 'aud': 'farmer'}, settings.secret, algorithm='HS256')
@@ -143,12 +150,6 @@ def create_app(overrides: dict | None = None) -> FastAPI:
                                         (user['id'], json.dumps(body.model_dump(exclude_none=True), ensure_ascii=False)))
         return {'farm': database.farm_for(user['id'])}
 
-    def photo_path(filename: str) -> Path:
-        candidate = (settings.upload_dir / filename).resolve()
-        if candidate.parent != settings.upload_dir:
-            raise HTTPException(404, 'Photo not found.')
-        return candidate
-
     @app.post('/api/farm/soil-photo')
     async def upload_photo(user: User, photo: UploadFile = File(...)):
         with database.lock:
@@ -173,25 +174,25 @@ def create_app(overrides: dict | None = None) -> FastAPI:
         except (UnidentifiedImageError, OSError, ValueError, SyntaxError, Image.DecompressionBombError, Image.DecompressionBombWarning):
             raise HTTPException(400, 'Choose a valid JPEG, PNG or WebP image matching its file type.') from None
         filename = secrets.token_hex(24) + '.' + extension
-        destination = photo_path(filename)
-        destination.write_bytes(data)
+        await photos.put(user['id'], filename, data, mime)
         try:
             with database.lock, database.connection:
                 database.connection.execute('UPDATE farms SET photo=? WHERE user_id=?', (filename, user['id']))
         except Exception:
-            destination.unlink(missing_ok=True)
+            await photos.delete(user['id'], filename)
             raise
         if row['photo']:
-            photo_path(row['photo']).unlink(missing_ok=True)
+            await photos.delete(user['id'], row['photo'])
         return {'ok': True}
 
     @app.get('/api/farm/soil-photo')
     async def get_photo(user: User):
         with database.lock:
             row = database.connection.execute('SELECT photo FROM farms WHERE user_id=?', (user['id'],)).fetchone()
-        if not row or not row['photo'] or not photo_path(row['photo']).is_file():
+        if not row or not row['photo']:
             raise HTTPException(404, 'No soil photo saved.')
-        return FileResponse(photo_path(row['photo']))
+        data, mime = await photos.get(user['id'], row['photo'])
+        return Response(data, media_type=mime, headers={'Cache-Control': 'private, no-store'})
 
     @app.delete('/api/farm/soil-photo')
     async def delete_photo(user: User):
@@ -199,7 +200,7 @@ def create_app(overrides: dict | None = None) -> FastAPI:
             row = database.connection.execute('SELECT photo FROM farms WHERE user_id=?', (user['id'],)).fetchone()
             database.connection.execute('UPDATE farms SET photo=NULL WHERE user_id=?', (user['id'],))
         if row and row['photo']:
-            photo_path(row['photo']).unlink(missing_ok=True)
+            await photos.delete(user['id'], row['photo'])
         return {'ok': True}
 
     app.include_router(intelligence_router(database, current_user, registry))

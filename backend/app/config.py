@@ -23,6 +23,10 @@ class Settings:
     voice_account_sid: str = ''
     voice_auth_token: str = ''
     voice_phone: str = ''
+    turso_url: str = ''
+    turso_token: str = ''
+    photo_storage: str = 'local'
+    verify_service_sid: str = ''
 
     @property
     def production(self) -> bool:
@@ -42,6 +46,15 @@ class Settings:
         if demo and not re.fullmatch(r'[0-9]{6}', code):
             raise ValueError('Set a six-digit DEMO_OTP.')
         database = env.get('DATABASE_PATH', './data/krishi.sqlite')
+        turso_url = env.get('TURSO_DATABASE_URL', '') or ''
+        turso_token = env.get('TURSO_AUTH_TOKEN', '') or ''
+        photo_storage = env.get('PHOTO_STORAGE', 'local')
+        if bool(turso_url) != bool(turso_token):
+            raise ValueError('Set both TURSO_DATABASE_URL and TURSO_AUTH_TOKEN.')
+        if photo_storage not in ('local', 'vercel-blob'):
+            raise ValueError('PHOTO_STORAGE must be local or vercel-blob.')
+        if env.get('VERCEL') == '1' and (not turso_url or photo_storage != 'vercel-blob'):
+            raise ValueError('Vercel requires Turso database credentials and PHOTO_STORAGE=vercel-blob; local storage is not durable.')
         return cls(environment, secret, demo, code,
                    env.get('APP_ORIGIN', 'http://127.0.0.1:5173'),
                    database if database == ':memory:' else str((BACKEND_ROOT / database).resolve()),
@@ -52,5 +65,7 @@ class Settings:
                    (env.get('VOICE_PUBLIC_URL', '') or '').rstrip('/'),
                    env.get('TWILIO_ACCOUNT_SID', '') or '',
                    env.get('TWILIO_AUTH_TOKEN', '') or '',
-                   env.get('TWILIO_PHONE_NUMBER', '') or '')
+                   env.get('TWILIO_PHONE_NUMBER', '') or '',
+                   turso_url, turso_token, photo_storage,
+                   env.get('TWILIO_VERIFY_SERVICE_SID', '') or '')
 
