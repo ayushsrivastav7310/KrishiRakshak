@@ -37,7 +37,10 @@ class SecurityMiddleware:
             if headers.get(b'origin', b'').decode() != self.origin:
                 return await reject(403, 'Request origin is not allowed.')
 
-        limits = {'/api/auth/request-otp': 15, '/api/auth/verify-otp': 40}
+        limits = {'/api/auth/request-otp': 15, '/api/auth/verify-otp': 40,
+                  '/api/diseases/predict': 30, '/api/mandi/sync': 10,
+                  '/api/irrigation/calculate': 60,
+                  '/api/voice/profile': 30, '/api/voice/simulate': 120}
         if scope['path'] in limits:
             now = time.monotonic()
             for key in list(self.buckets):

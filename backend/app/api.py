@@ -21,6 +21,10 @@ from app.database import Database
 from app.models import Farm, PhoneRequest, VerifyRequest
 from app.otp import OTPService, normalize_phone
 from app.security import SecurityMiddleware
+from app.intelligence import get_registry
+from app.intelligence_api import intelligence_router
+from app.phases_api import phases_router
+from app.voice import voice_router
 
 
 def create_app(overrides: dict | None = None) -> FastAPI:
@@ -37,6 +41,8 @@ def create_app(overrides: dict | None = None) -> FastAPI:
     app = FastAPI(title='KrishiRakshak API', version='1.0.0', lifespan=lifespan)
     app.state.database = database
     app.state.settings = settings
+    registry = get_registry(str((overrides or {}).get('MODEL_DIR', Path(__file__).resolve().parents[1] / 'artifacts')))
+    app.state.models = registry
     app.add_middleware(SecurityMiddleware, origin=settings.origin)
 
     @app.exception_handler(StarletteHTTPException)
@@ -195,6 +201,10 @@ def create_app(overrides: dict | None = None) -> FastAPI:
         if row and row['photo']:
             photo_path(row['photo']).unlink(missing_ok=True)
         return {'ok': True}
+
+    app.include_router(intelligence_router(database, current_user, registry))
+    app.include_router(phases_router(database, current_user, registry.directory, settings.data_gov_api_key))
+    app.include_router(voice_router(database, current_user, registry, settings))
 
     @app.api_route('/api/{rest:path}', methods=['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], include_in_schema=False)
     async def missing_api(rest: str):

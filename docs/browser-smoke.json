@@ -1,0 +1,14 @@
+{
+  "checks": [
+    "Phase 1 login and returning farmer dashboard",
+    "Real crop recommendation through built frontend",
+    "Real soil inference through built frontend (synthetic brown image; no accuracy claim)",
+    "Manual correction persisted",
+    "Live Open-Meteo autofill preserves rainfall",
+    "Session and history survive reload",
+    "390px viewport: no horizontal overflow",
+    "Phase 1 logout"
+  ],
+  "pageErrors": [],
+  "date": "2026-10-17T18:45:44.773Z"
+}

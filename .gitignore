@@ -7,3 +7,6 @@ data/
 __pycache__/
 .pytest_cache/
 *.pyc
+backend/artifacts/*
+!backend/artifacts/.gitkeep
+.test-tmp*/

@@ -17,6 +17,12 @@ class Settings:
     database_path: str
     upload_dir: Path
     frontend_dist: Path
+    data_gov_api_key: str = ''
+    voice_enabled: bool = False
+    voice_public_url: str = ''
+    voice_account_sid: str = ''
+    voice_auth_token: str = ''
+    voice_phone: str = ''
 
     @property
     def production(self) -> bool:
@@ -40,5 +46,11 @@ class Settings:
                    env.get('APP_ORIGIN', 'http://127.0.0.1:5173'),
                    database if database == ':memory:' else str((BACKEND_ROOT / database).resolve()),
                    (BACKEND_ROOT / env.get('UPLOAD_DIR', './data/uploads')).resolve(),
-                   (BACKEND_ROOT.parent / 'frontend/dist').resolve())
+                   (BACKEND_ROOT.parent / 'frontend/dist').resolve(),
+                   env.get('DATA_GOV_API_KEY', '') or '',
+                   env.get('VOICE_ENABLED', 'false') == 'true',
+                   (env.get('VOICE_PUBLIC_URL', '') or '').rstrip('/'),
+                   env.get('TWILIO_ACCOUNT_SID', '') or '',
+                   env.get('TWILIO_AUTH_TOKEN', '') or '',
+                   env.get('TWILIO_PHONE_NUMBER', '') or '')
 

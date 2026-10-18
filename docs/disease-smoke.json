@@ -1,0 +1,38 @@
+{
+  "label": "Tomato___Early_blight",
+  "crop": "Tomato",
+  "confidence": 0.996235191822052,
+  "uncertain": false,
+  "cropMismatch": false,
+  "imageUnclear": false,
+  "warning": "Confidence is a model score, not diagnostic accuracy. Controlled leaf datasets may not generalize to field images.",
+  "alternatives": [
+    {
+      "label": "Tomato___Septoria_leaf_spot",
+      "confidence": 0.003518220502883196
+    },
+    {
+      "label": "Pepper,_bell___Bacterial_spot",
+      "confidence": 0.00010233518696622923
+    },
+    {
+      "label": "Tomato___Target_Spot",
+      "confidence": 5.314743611961603e-05
+    }
+  ],
+  "guidance": {
+    "description": "Early blight is a fungal disease that can affect tomato leaves, stems and fruit.",
+    "symptoms": "Older leaves may develop brown lesions with concentric rings and surrounding yellowing.",
+    "prevention": "Use healthy transplants, rotate away from susceptible crops, and reduce prolonged leaf wetness.",
+    "consult": "Consult your local agricultural extension service when symptoms spread, plants wilt, or the result is uncertain.",
+    "source": "https://ipm.ucanr.edu/agriculture/tomato/early-blight/"
+  },
+  "modelVersion": "d33601185b32cf05b3942661b8d84ffb86dc48ec",
+  "id": 1,
+  "testNote": "Single public PlantVillage image smoke test, potentially seen by the pretrained model; not held-out evaluation or accuracy.",
+  "imageSource": {
+    "name": "0012b9d2-2130-4a06-a834-b1f3af34f57e___RS_Erly.B 8389.JPG",
+    "download_url": "https://raw.githubusercontent.com/spMohanty/PlantVillage-Dataset/master/raw/color/Tomato___Early_blight/0012b9d2-2130-4a06-a834-b1f3af34f57e___RS_Erly.B%208389.JPG",
+    "sha": "26777f17de50332a6bdb9f068e4217167a698e8a"
+  }
+}

@@ -1,0 +1,12 @@
+.voice-helpline{margin-top:32px;min-width:0}
+.voice-helpline form{border-top:1px solid #dce2d2;margin-top:24px;padding-top:24px}
+.voice-helpline label{display:block;margin:16px 0;line-height:1.6;font-size:14px}
+.voice-helpline input:not([type=checkbox]),.voice-helpline select{display:block;width:100%;max-width:420px;padding:11px 12px;margin-top:6px;border:1px solid #bdcdbd;border-radius:7px;background:#fffefa;color:#243e31}
+.voice-helpline input[type=checkbox]{width:18px;height:18px;margin-right:8px;vertical-align:middle}
+.voice-helpline fieldset{border:1px solid #dce2d2;border-radius:10px;padding:18px;margin:18px 0}
+.voice-helpline button{margin:6px 10px 6px 0}
+.voice-helpline details{border:1px solid #dce2d2;border-radius:8px;padding:14px;margin:12px 0;overflow-wrap:anywhere}
+.voice-helpline summary{cursor:pointer;line-height:1.6}
+.voice-helpline details p{margin:12px 0}
+.voice-helpline ol{padding-left:24px}
+@media(max-width:600px){.voice-helpline button{width:100%}.voice-helpline fieldset{padding:12px}}

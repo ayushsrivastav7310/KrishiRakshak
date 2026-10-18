@@ -17,6 +17,11 @@ class Database:
             CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, phone TEXT UNIQUE NOT NULL);
             CREATE TABLE IF NOT EXISTS farms (user_id INTEGER PRIMARY KEY REFERENCES users(id), data TEXT NOT NULL, photo TEXT);
             CREATE TABLE IF NOT EXISTS otp_challenges (phone TEXT PRIMARY KEY, hash TEXT NOT NULL, expires INTEGER NOT NULL, requested INTEGER NOT NULL, attempts INTEGER NOT NULL DEFAULT 0);
+            CREATE TABLE IF NOT EXISTS intelligence_history (
+                id INTEGER PRIMARY KEY, user_id INTEGER NOT NULL REFERENCES users(id),
+                kind TEXT NOT NULL CHECK(kind IN ('soil','crop','correction')),
+                data TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')));
+            CREATE INDEX IF NOT EXISTS intelligence_owner_date ON intelligence_history(user_id, id DESC);
         ''')
 
     def farm_for(self, user_id: int):
@@ -26,3 +31,14 @@ class Database:
 
     def close(self):
         self.connection.close()
+
+    def record(self, user_id, kind, data):
+        with self.lock, self.connection:
+            cursor = self.connection.execute('INSERT INTO intelligence_history(user_id,kind,data) VALUES(?,?,?)',
+                                             (user_id, kind, json.dumps(data, allow_nan=False)))
+            return cursor.lastrowid
+
+    def history(self, user_id):
+        with self.lock:
+            rows = self.connection.execute('SELECT * FROM intelligence_history WHERE user_id=? ORDER BY id DESC LIMIT 50', (user_id,)).fetchall()
+            return [{'id': row['id'], 'kind': row['kind'], 'createdAt': row['created_at'], 'result': json.loads(row['data'])} for row in rows]

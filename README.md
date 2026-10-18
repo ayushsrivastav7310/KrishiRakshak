@@ -1,4 +1,6 @@
-# KrishiRakshak — Phase 1
+# KrishiRakshak — Phase 1 + Crop Intelligence
+
+Phase 2 adds real soil-model inference, a trained crop Random Forest, Open-Meteo weather, manual soil corrections and private analysis history within the existing dashboard. Start with [Phase 2 setup and API contracts](docs/PHASE_2_SETUP.md), [the implementation report](PHASE_2_REPORT.md) and [dataset/model limitations](docs/DATASETS.md). Install the optional ML requirements and prepare local artifacts on a fresh machine. Soil fine-tuning remains pending; its reproducible Colab notebook is included.
 
 Farmer-focused **React + Vite + Tailwind** frontend and **Python + FastAPI** backend with SQLite, JWT cookie sessions and private soil photos. The Express backend has been replaced. Existing SQLite records, uploaded files, OTP hashes and JWT sessions remain compatible with the same secret.
 
@@ -92,7 +94,7 @@ Welcome → phone → OTP → four onboarding steps → dashboard. Returning use
 
 Location accepts village/district/state or a complete coordinate pair. GPS is requested only by an explicit button. Optional soil-test values validate pH between 0 and 14 and require a unit for NPK values. Photos can be previewed, replaced and removed; uploads accept valid JPEG/PNG/WebP images up to 5 MB. Pillow verifies the file format and image integrity without inferring soil or nutrient information.
 
-The four dashboard cards are clearly labeled Coming soon. They produce no fake recommendations, weather, disease detections, prices or buyer transactions.
+Crop Intelligence provides real crop classification, visual soil estimates and weather retrieval. Disease detection and market/buyer cards remain labeled Coming soon; no Phase 3 functionality is introduced.
 
 ## Security and prototype boundaries
 
@@ -109,4 +111,12 @@ The four dashboard cards are clearly labeled Coming soon. They produce no fake r
 The Python suite covers login, cookies, OTP failure/expiry/cooldown/attempt limits, validation, farm save/edit, owner isolation, image integrity/type/size limits, CSRF, request rate limits, session restoration, logout, production guards, existing database/JWT compatibility across restarts, API documentation and static frontend serving. Frontend build is checked separately. GPS permissions and a real SMS provider are not exercised.
 
 Verified after migration: 19 Python tests passed, the frontend production build passed, and the browser flow through Vite to FastAPI completed demo login, farm onboarding/save, session restoration after refresh, and logout. Browser test data was removed afterward.
+
+# Phases 3–5
+
+The existing dashboard now includes plant health, irrigation and mandi panels. See [implementation summary](PHASE_3_5_REPORT.md), [test evidence](docs/TEST_REPORT.md), and per-phase reports in `docs/`. Disease inference needs `pip install -r backend/requirements-disease-inference.txt` followed by `python backend/ml/fetch_disease.py` from the repository root. Government synchronization needs a server-only `DATA_GOV_API_KEY`; official CSV import is documented in [mandi setup](docs/PHASE_5_MANDI_PRICES.md). Model fine-tuning/held-out evaluation and genuine mandi/MSP data population remain pending; no synthetic data is shown as real.
+
+## AI Voice Helpline
+
+The dashboard includes PIN enrollment, measured irrigation inputs, a typed transcript simulator and private call monitoring. The inbound Twilio adapter supports Hindi speech recognition, Hindi text-to-speech and keypad fallback while reusing the crop, irrigation and mandi services. See [helpline setup, API contracts, limits and real-call checklist](docs/VOICE_HELPLINE.md). Live telephony is disabled by default; a provider account, voice-capable number, signed public HTTPS webhooks and real-handset testing are still required. No real calls have been verified.
 

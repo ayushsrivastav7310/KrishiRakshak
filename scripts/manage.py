@@ -52,7 +52,7 @@ def backend_command():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', nargs='?', default='dev', choices=['dev', 'frontend', 'backend', 'build', 'test', 'setup'])
+    parser.add_argument('mode', nargs='?', default='dev', choices=['dev', 'frontend', 'backend', 'build', 'test', 'test-frontend', 'setup'])
     mode = parser.parse_args().mode
     os.chdir(ROOT)
     if mode == 'setup':
@@ -64,6 +64,8 @@ def main():
         return subprocess.call([node_command(), str(ROOT / 'scripts/vite.mjs'), 'build'])
     if mode == 'test':
         return subprocess.call([python_command(), '-m', 'pytest', '-c', 'backend/pytest.ini', 'backend/tests'])
+    if mode == 'test-frontend':
+        return subprocess.call([node_command(), str(ROOT / 'frontend/node_modules/vitest/vitest.mjs'), 'run'], cwd=ROOT / 'frontend')
     if mode == 'frontend':
         return subprocess.call([node_command(), str(ROOT / 'scripts/vite.mjs'), '--host', '127.0.0.1'])
     if mode == 'backend':

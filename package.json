@@ -5,6 +5,7 @@
   "type": "module",
   "workspaces": ["frontend"],
   "scripts": {
+    "test:frontend": "npm --workspace frontend test",
     "dev": "node scripts/vite.mjs --host 127.0.0.1",
     "dev:frontend": "node scripts/vite.mjs --host 127.0.0.1",
     "build": "node scripts/vite.mjs build"

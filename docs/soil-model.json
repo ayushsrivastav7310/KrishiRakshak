@@ -1,0 +1,18 @@
+{
+  "version": "hf-e8ec0d6f5addfd5d6d1388d462316ffc28dd2186",
+  "file": "soil_model.h5",
+  "labels": [
+    "Medium Black Soil",
+    "Reddish Brown Soil",
+    "Saline Soil"
+  ],
+  "encoderSha256": "80108784940c660004c41272bf4031bdad3b8fe0ba30364c5970cb10623c50ad",
+  "preprocessing": "bgr_div255",
+  "license": "MIT",
+  "sha256": "b4eb29e6c77366988612712639dfdae22f36cbe5f44fbd2a0d983bb4c3f5c584",
+  "architecture": "VGG16-style (inspected downloaded HDF5); differs from MobileNetV2 model-card description",
+  "source": "https://huggingface.co/shrutmpatil/soil-classification-model",
+  "classOrderEvidence": "Publisher soil_encoder.pkl raw UTF-32 array inspected without unpickling; alphabetical three-class order.",
+  "preprocessingEvidence": "Publisher predict2.py: OpenCV BGR, resize 224x224 bilinear, float32 /255. Other publisher paths conflict (VGG preprocessing / double normalization).",
+  "limitations": "Uses publisher file-picker inference path. Preprocessing linkage to these exact weights not independently verified. No local accuracy or calibration evaluation; closed-set scores cannot detect unsupported soil."
+}

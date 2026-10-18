@@ -1,0 +1,67 @@
+{
+  "source": "Open-Meteo",
+  "attribution": "https://open-meteo.com/",
+  "provenance": "weather-estimate",
+  "latitude": 26.81898,
+  "longitude": 80.93023,
+  "timezone": "Asia/Kolkata",
+  "current": {
+    "time": "2026-10-18T00:00",
+    "interval": 900,
+    "temperature_2m": 23.7,
+    "relative_humidity_2m": 89,
+    "rain": 0.0
+  },
+  "currentUnits": {
+    "time": "iso8601",
+    "interval": "seconds",
+    "temperature_2m": "\u00b0C",
+    "relative_humidity_2m": "%",
+    "rain": "mm"
+  },
+  "forecast": {
+    "time": [
+      "2026-10-17",
+      "2026-10-18",
+      "2026-10-19",
+      "2026-10-20",
+      "2026-10-21",
+      "2026-10-22",
+      "2026-10-23"
+    ],
+    "temperature_2m_max": [
+      30.4,
+      30.9,
+      30.5,
+      30.5,
+      30.7,
+      30.5,
+      31.3
+    ],
+    "temperature_2m_min": [
+      22.8,
+      21.6,
+      20.0,
+      19.4,
+      18.8,
+      19.5,
+      19.8
+    ],
+    "precipitation_sum": [
+      0.5,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0
+    ]
+  },
+  "forecastUnits": {
+    "time": "iso8601",
+    "temperature_2m_max": "\u00b0C",
+    "temperature_2m_min": "\u00b0C",
+    "precipitation_sum": "mm"
+  },
+  "rainfallNote": "Current rain and seven-day forecast precipitation are not historical or seasonal rainfall. Rainfall is not auto-filled into the crop model."
+}
